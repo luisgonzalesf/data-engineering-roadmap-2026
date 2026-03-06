@@ -178,3 +178,4 @@ pyrightconfig.json
 yellow_tripdata_2024-01.**parquet
 nivel-0/taxi_zone_lookup.csv
 nivel-0/yellow_tripdata_2024-01.csv
+yellow_tripdata_2024-01.csv
