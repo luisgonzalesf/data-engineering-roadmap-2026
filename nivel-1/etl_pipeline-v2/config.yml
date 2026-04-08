@@ -1,0 +1,60 @@
+# ============================================================
+# ETL Pipeline — Configuración externa
+# El código NO debe cambiar cuando cambia el entorno.
+# Solo cambia este archivo.
+# ============================================================
+
+# ── FASE-3: SIN CAMBIOS EN ESTA SECCIÓN ─────────────────────
+source:
+  url: "https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-01.parquet"
+
+bronze:
+  bucket: "bronze"
+  object_path: "yellow_taxi/yellow_tripdata_2024-01.parquet"
+
+minio:
+  endpoint: "http://minio-service:9000"
+  # Credenciales se leen desde variables de entorno:
+  # MINIO_ROOT_USER / MINIO_ROOT_PASSWORD
+
+postgres:
+  host: "postgres-service"
+  port: 5432
+  db: "ny_taxi"
+  user: "postgres"
+  # Password se lee desde variable de entorno: POSTGRES_PASSWORD
+
+pipeline:
+  log_every_n_groups: 1
+
+# ── FASE-3: SECCIONES NUEVAS ─────────────────────────────────
+
+# Nuevo: dataset de referencia geográfica — Bronze únicamente
+# No tiene Silver ni Gold propios. Gold lo lee directamente desde acá.
+lookup:
+  url: "https://d37ci6vzurychx.cloudfront.net/misc/taxi_zone_lookup.csv"
+  bucket: "bronze"
+  object_path: "taxi_zone_lookup/taxi_zone_lookup.csv"
+
+# Nuevo: capa Silver — viajes limpios y enriquecidos
+silver:
+  bucket: "silver"
+  object_path: "yellow_taxi/yellow_tripdata_2024-01.parquet"
+
+# Nuevo: capa Gold — modelos analíticos pre-agregados
+# Una entrada por modelo. Cada uno escribe en MinIO y en PostgreSQL.
+gold:
+  bucket: "gold"
+  models:
+    hourly_demand:
+      object_path: "yellow_taxi/hourly_demand.parquet"
+      table: "gold_hourly_demand"
+    zone_performance:
+      object_path: "yellow_taxi/zone_performance.parquet"
+      table: "gold_zone_performance"
+    tip_analysis:
+      object_path: "yellow_taxi/tip_analysis.parquet"
+      table: "gold_tip_analysis"
+    daily_summary:
+      object_path: "yellow_taxi/daily_summary.parquet"
+      table: "gold_daily_summary"
